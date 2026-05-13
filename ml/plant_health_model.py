@@ -113,7 +113,7 @@ class PlantHealthAnalyzer:
             logger.info("📦 إنشاء نموذج صحة النبات باستخدام EfficientNet-B0")
             
             # تحميل الأوزان
-            checkpoint = torch.load(model_path, map_location=self.device)
+            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
             
             if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
                 self.model.load_state_dict(checkpoint['model_state_dict'])

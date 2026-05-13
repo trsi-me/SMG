@@ -355,7 +355,7 @@ def load_model():
             return False
         
         # تحميل النموذج
-        checkpoint = torch.load(model_path, map_location='cpu')
+        checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
         
         # التحقق من تنسيق الملف
         if isinstance(checkpoint, dict):
