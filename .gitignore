@@ -81,9 +81,6 @@ mobile/smg_app/build/
 mobile/smg_app/.flutter-plugins
 mobile/smg_app/.flutter-plugins-dependencies
 
-# Flutter web المنسوخ إلى الباك اند للنشر
-backend/static/web/
-
 # Temporary files
 tmp/
 temp/

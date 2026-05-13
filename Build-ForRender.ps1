@@ -78,6 +78,7 @@ Get-ChildItem -Path $staticTarget -Force -ErrorAction SilentlyContinue | Remove-
 Copy-Item -Path (Join-Path $webOut "*") -Destination $staticTarget -Recurse -Force
 
 Write-Host "==> Done. Web bundle: $staticTarget" -ForegroundColor Green
+Write-Host "==> Before Render: git add backend/static/web ; if model is missing on server, git add -f ml/models/efficientnet_b4_v1.pt" -ForegroundColor Yellow
 
 if ($StartServer) {
     if ($WebOnly) {
