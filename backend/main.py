@@ -829,10 +829,16 @@ def generate_care_instructions(species_info: Dict[str, Any], sensor_data: List[D
         'recommendations': recommendations
     }
 
+# واجهة Flutter Web (مخرجات: flutter build web → backend/static/web)
+WEB_APP_DIR = Path(__file__).parent / "static" / "web"
+
 # Routes
 
 @app.get("/")
 async def root():
+    index = WEB_APP_DIR / "index.html"
+    if index.is_file():
+        return FileResponse(index)
     return {"message": "SMG Plant Recognition API", "version": "1.0.0"}
 
 @app.get("/api/v1/health")
@@ -1768,8 +1774,6 @@ async def upload_avatar(
         raise HTTPException(status_code=500, detail="خطأ في رفع الصورة الشخصية")
 
 
-# واجهة Flutter Web (مخرجات: flutter build web → backend/static/web)
-WEB_APP_DIR = Path(__file__).parent / "static" / "web"
 
 
 @app.head("/")
