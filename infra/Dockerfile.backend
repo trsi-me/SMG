@@ -1,0 +1,40 @@
+# Dockerfile لخادم Backend API
+FROM python:3.10-slim
+
+# تعيين متغيرات البيئة
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DEBIAN_FRONTEND=noninteractive
+
+# تحديث النظام وتثبيت المتطلبات الأساسية
+RUN apt-get update && apt-get install -y \
+    gcc \
+    g++ \
+    libmysqlclient-dev \
+    pkg-config \
+    && rm -rf /var/lib/apt/lists/*
+
+# إنشاء مجلد العمل
+WORKDIR /app
+
+# نسخ ملفات المتطلبات
+COPY backend/requirements.txt .
+
+# تثبيت المتطلبات
+RUN pip install --no-cache-dir -r requirements.txt
+
+# نسخ كود التطبيق
+COPY backend/ .
+COPY sql/ ./sql/
+
+# إنشاء مجلدات الملفات
+RUN mkdir -p uploads models
+
+# تعيين الصلاحيات
+RUN chmod +x sql/manage_db.py
+
+# فتح المنفذ
+EXPOSE 8000
+
+# أمر التشغيل
+CMD ["python", "main.py"]

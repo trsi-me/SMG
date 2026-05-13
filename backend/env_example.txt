@@ -1,0 +1,26 @@
+# إعدادات قاعدة البيانات (XAMPP - بدون كلمة مرور افتراضياً)
+DB_HOST=localhost
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=smg_plants
+
+# إعدادات الخادم (على Render يُحقن PORT تلقائياً — يُستخدم قبل SERVER_PORT)
+SERVER_HOST=0.0.0.0
+SERVER_PORT=8000
+
+# إعدادات الأمان
+SECRET_KEY=your-secret-key-here
+JWT_SECRET=your-jwt-secret-here
+JWT_SECRET_KEY=your-jwt-secret-key-here
+
+# إعدادات النموذج
+MODEL_PATH=models/efficientnet_b4_v1.pt
+MODEL_ARCH=efficientnet_b4
+
+# إعدادات التطوير
+DEBUG=True
+LOG_LEVEL=INFO
+
+# إعدادات API الطقس
+WEATHER_API_KEY=your-openweathermap-api-key-here
+WEATHER_API_URL=https://api.openweathermap.org/data/2.5/weather

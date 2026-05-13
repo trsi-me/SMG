@@ -1,0 +1,91 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# Environment Variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite3
+
+# Models
+*.pt
+*.pth
+*.onnx
+*.tflite
+models/
+checkpoints/
+
+# Data
+data/
+datasets/
+*.csv
+*.json
+
+# Results
+results/
+outputs/
+evaluations/
+
+# Flutter
+mobile/smg_app/.dart_tool/
+mobile/smg_app/.packages
+mobile/smg_app/.pub-cache/
+mobile/smg_app/.pub/
+mobile/smg_app/build/
+mobile/smg_app/.flutter-plugins
+mobile/smg_app/.flutter-plugins-dependencies
+
+# Flutter web المنسوخ إلى الباك اند للنشر
+backend/static/web/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp

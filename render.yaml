@@ -1,0 +1,38 @@
+# SMG on Render: FastAPI + PyTorch + Flutter Web (built during deploy, no extra script file)
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: smg-plant-app
+    runtime: python
+    region: frankfurt
+    plan: free
+    rootDir: .
+    buildCommand: |
+      set -euo pipefail
+      ROOT="$(pwd)"
+      python -m pip install --upgrade pip
+      python -m pip install --no-cache-dir -r backend/requirements.txt
+      if [ ! -f ml/models/efficientnet_b4_v1.pt ]; then python create_default_model.py; fi
+      export FLUTTER_ROOT="${FLUTTER_ROOT:-$HOME/flutter_stable}"
+      if [ ! -x "$FLUTTER_ROOT/bin/flutter" ]; then
+        rm -rf "$FLUTTER_ROOT"
+        git clone https://github.com/flutter/flutter.git -b stable --depth 1 "$FLUTTER_ROOT"
+      fi
+      export PATH="$FLUTTER_ROOT/bin:$PATH"
+      flutter config --no-analytics --enable-web
+      flutter precache --web
+      (cd "$ROOT/mobile/smg_app" && flutter pub get && flutter build web --release)
+      mkdir -p backend/static/web
+      rm -rf backend/static/web/*
+      cp -r "$ROOT/mobile/smg_app/build/web/"* backend/static/web/
+    startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: SERVER_HOST
+        value: 0.0.0.0
+      - key: DEBUG
+        value: "False"
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SECRET_KEY
+        generateValue: true

@@ -1,0 +1,110 @@
+# docker-compose.yml للتشغيل المحلي
+version: '3.8'
+
+services:
+  # قاعدة البيانات MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: smg_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: smg_root_password
+      MYSQL_DATABASE: smg_plants
+      MYSQL_USER: smg_user
+      MYSQL_PASSWORD: smg_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/create_tables.sql:/docker-entrypoint-initdb.d/create_tables.sql
+    networks:
+      - smg_network
+    command: --default-authentication-plugin=mysql_native_password
+
+  # خادم Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.backend
+    container_name: smg_backend
+    restart: unless-stopped
+    environment:
+      DB_HOST: mysql
+      DB_USER: smg_user
+      DB_PASSWORD: smg_password
+      DB_NAME: smg_plants
+      SERVER_HOST: 0.0.0.0
+      SERVER_PORT: 8000
+      DEBUG: "true"
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend/uploads:/app/uploads
+      - ./backend/models:/app/models
+      - ./backend/logs:/app/logs
+    depends_on:
+      - mysql
+    networks:
+      - smg_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # خدمة تدريب النماذج
+  ml-trainer:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile.ml
+    container_name: smg_ml_trainer
+    restart: "no"
+    environment:
+      PYTHONPATH: /app
+    volumes:
+      - ./ml/data:/app/data
+      - ./ml/models:/app/models
+      - ./ml/results:/app/results
+    networks:
+      - smg_network
+    profiles:
+      - training
+
+  # خادم Nginx للعكس البروكسي
+  nginx:
+    image: nginx:alpine
+    container_name: smg_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./infra/nginx.conf:/etc/nginx/nginx.conf
+      - ./infra/ssl:/etc/nginx/ssl
+    depends_on:
+      - backend
+    networks:
+      - smg_network
+
+  # خدمة Redis للتخزين المؤقت
+  redis:
+    image: redis:7-alpine
+    container_name: smg_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - smg_network
+    command: redis-server --appendonly yes
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  smg_network:
+    driver: bridge
