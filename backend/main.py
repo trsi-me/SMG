@@ -85,7 +85,12 @@ async def lifespan(app: FastAPI):
     logger.info("=" * 50)
     logger.info("🚀 بدء تشغيل SMG Plant Recognition API")
     logger.info("=" * 50)
-    
+
+    try:
+        torch.set_num_threads(int(os.getenv("TORCH_NUM_THREADS", "1")))
+    except Exception:
+        pass
+
     # التحقق من قاعدة البيانات والجداول
     logger.info("🗄️ التحقق من قاعدة البيانات...")
     if ensure_database_and_tables():
@@ -357,7 +362,15 @@ def load_model():
             return False
         
         # تحميل النموذج
-        checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
+        try:
+            checkpoint = torch.load(
+                model_path,
+                map_location='cpu',
+                weights_only=False,
+                mmap=True,
+            )
+        except TypeError:
+            checkpoint = torch.load(model_path, map_location='cpu', weights_only=False)
         
         # التحقق من تنسيق الملف
         if isinstance(checkpoint, dict):

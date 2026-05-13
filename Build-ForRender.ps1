@@ -46,8 +46,9 @@ if (-not $WebOnly) {
         python -m venv (Join-Path $Root ".venv")
     }
 
-    Write-Host "==> pip install backend (no-cache-dir)" -ForegroundColor Cyan
+    Write-Host "==> pip: torch CPU then backend requirements" -ForegroundColor Cyan
     & $venvPy -m pip install --upgrade pip
+    & $venvPy -m pip install --no-cache-dir torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cpu
     & $venvPy -m pip install --no-cache-dir -r (Join-Path $Root "backend\requirements.txt")
 
     $modelPath = Join-Path $Root "ml\models\efficientnet_b4_v1.pt"

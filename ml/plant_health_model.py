@@ -111,22 +111,31 @@ class PlantHealthAnalyzer:
             # إنشاء النموذج باستخدام EfficientNet-B0 (كما تم تدريبه)
             self.model = PlantHealthClassifier()
             logger.info("📦 إنشاء نموذج صحة النبات باستخدام EfficientNet-B0")
-            
-            # تحميل الأوزان
-            checkpoint = torch.load(model_path, map_location=self.device, weights_only=False)
-            
+
+            try:
+                checkpoint = torch.load(
+                    model_path,
+                    map_location=self.device,
+                    weights_only=False,
+                    mmap=True,
+                )
+            except TypeError:
+                checkpoint = torch.load(
+                    model_path, map_location=self.device, weights_only=False
+                )
+
             if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
                 self.model.load_state_dict(checkpoint['model_state_dict'])
             else:
                 self.model.load_state_dict(checkpoint)
-            
+
             self.model.to(self.device)
             self.model.eval()
-            
+
             logger.info(f"✅ تم تحميل نموذج صحة النبات من {model_path}")
             logger.info("✅ النموذج يستخدم EfficientNet-B0 (يتوافق مع plant_health_v1.pt)")
             return True
-            
+
         except Exception as e:
             logger.error(f"❌ خطأ في تحميل نموذج صحة النبات: {e}")
             logger.error(f"⚠️ تأكد أن النموذج المدرب على EfficientNet-B0 وليس B4")

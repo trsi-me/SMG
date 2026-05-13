@@ -1,4 +1,4 @@
-# SMG: Python deps only on Render. Ship Flutter web from backend/static/web (run Build-ForRender.ps1 locally, then git add).
+# SMG on Render: Flutter web مسبقاً في backend/static/web | PyTorch CPU فقط لتقليل RAM والحجم
 # https://render.com/docs/blueprint-spec
 services:
   - type: web
@@ -7,11 +7,15 @@ services:
     region: frankfurt
     plan: free
     rootDir: .
-    buildCommand: python --version && pip install --no-cache-dir -r backend/requirements.txt && python create_default_model.py
-    startCommand: cd backend && python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
+    buildCommand: |
+      set -e
+      python --version
+      pip install --no-cache-dir torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cpu
+      pip install --no-cache-dir -r backend/requirements.txt
+      if [ ! -f ml/models/efficientnet_b4_v1.pt ]; then python create_default_model.py; fi
+    startCommand: cd backend && OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 TORCH_NUM_THREADS=1 python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
     healthCheckPath: /api/v1/health
     envVars:
-      # ثبّت أيضاً من Dashboard إن لزم: PYTHON_VERSION = 3.11.9 (ملف .python-version يحدد إصدار البناء)
       - key: PYTHON_VERSION
         value: 3.11.9
       - key: SERVER_HOST

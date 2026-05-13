@@ -1,4 +1,5 @@
-# Backend API — Python 3.10–3.14 (Render الافتراضي 3.14: يحتاج torch>=2.9)
+# Backend API — Python 3.10–3.14
+# torch + torchvision: ثبّتهما أولاً (CPU على Linux/Render): pip install torch==2.9.1 torchvision==0.24.1 --index-url https://download.pytorch.org/whl/cpu
 # SQLite مدمج في Python
 
 fastapi==0.104.1
@@ -6,8 +7,6 @@ uvicorn[standard]==0.24.0
 python-multipart==0.0.6
 PyJWT==2.8.0
 Pillow>=10.4.0,<12
-torch==2.9.1
-torchvision==0.24.1
 timm>=0.9.0
 numpy>=1.26.4,<2.1
 opencv-python-headless>=4.10.0.84,<5
