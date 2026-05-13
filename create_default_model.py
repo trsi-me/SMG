@@ -10,7 +10,13 @@ import torch
 
 def _plant_classifier_cls():
     root = Path(__file__).resolve().parent
-    path = root / "ml" / "plant_classifier.py"
+    path = root / "backend" / "plant_classifier.py"
+    if not path.is_file():
+        path = root / "ml" / "plant_classifier.py"
+    if not path.is_file():
+        raise FileNotFoundError(
+            f"plant_classifier.py missing: add backend/plant_classifier.py to the repo (tried {root / 'backend' / 'plant_classifier.py'})"
+        )
     spec = importlib.util.spec_from_file_location("smg_plant_classifier", path)
     if spec is None or spec.loader is None:
         raise ImportError(f"Cannot load plant_classifier from {path}")

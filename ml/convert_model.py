@@ -8,7 +8,10 @@ from pathlib import Path
 import argparse
 import logging
 import json
-from train import PlantClassifier
+import sys
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'backend'))
+from plant_classifier import PlantClassifier
 
 # إعداد السجلات
 logging.basicConfig(level=logging.INFO)

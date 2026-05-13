@@ -19,10 +19,12 @@ from datetime import datetime
 import warnings
 warnings.filterwarnings('ignore')
 
-# استيراد النموذج من سكربت التدريب
+# استيراد النموذج من backend (مرفوع مع الريبو) ثم ml للتدريب
 import sys
-sys.path.append(str(Path(__file__).parent))
-from train import PlantDataset, PlantClassifier, get_transforms
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'backend'))
+sys.path.insert(0, str(Path(__file__).parent))
+from plant_classifier import PlantClassifier
+from train import PlantDataset, get_transforms
 
 # إعداد السجلات
 logging.basicConfig(level=logging.INFO)

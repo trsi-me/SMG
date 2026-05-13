@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI, HTTPException, Depends, UploadFile, File, Form, Header, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, FileResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
@@ -38,13 +38,15 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# إضافة مسار ml للاستيراد
-ml_path = Path(__file__).parent.parent / 'ml'
+# مسار backend أولاً لـ plant_classifier.py، ثم ml لباقي الوحدات
+_backend_dir = Path(__file__).resolve().parent
+ml_path = _backend_dir.parent / 'ml'
 sys.path.insert(0, str(ml_path))
+sys.path.insert(0, str(_backend_dir))
 
 # استيراد PlantClassifier لتحميل النموذج
 try:
-    from train import PlantClassifier
+    from plant_classifier import PlantClassifier
     PLANT_CLASSIFIER_AVAILABLE = True
 except ImportError:
     logger.warning("⚠️ PlantClassifier غير متوفر - سيتم استخدام تحميل النموذج المباشر")
@@ -1755,6 +1757,17 @@ async def upload_avatar(
 
 # واجهة Flutter Web (مخرجات: flutter build web → backend/static/web)
 WEB_APP_DIR = Path(__file__).parent / "static" / "web"
+
+
+@app.head("/")
+async def flutter_spa_head_root() -> Response:
+    """Render / uptime checks often use HEAD."""
+    return Response(status_code=200)
+
+
+@app.head("/{spa_path:path}")
+async def flutter_spa_head(spa_path: str) -> Response:
+    return Response(status_code=200)
 
 
 @app.get("/{spa_path:path}")

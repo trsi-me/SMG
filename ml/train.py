@@ -8,6 +8,11 @@ from torch.utils.data import DataLoader, Dataset, WeightedRandomSampler
 import torchvision.transforms as transforms
 from torchvision.models import efficientnet_b4, EfficientNet_B4_Weights
 import timm
+import sys
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'backend'))
+from plant_classifier import PlantClassifier
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
 import pandas as pd
@@ -17,7 +22,6 @@ import os
 import json
 import argparse
 import shutil
-from pathlib import Path
 import logging
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
@@ -77,7 +81,20 @@ class PlantDataset(Dataset):
         label = self.class_to_idx[row['label']]
         
         return image, label
-    
+
+    def get_class_weights(self):
+        class_counts = self.data['label'].value_counts()
+        total_samples = len(self.data)
+
+        weights = []
+        for cls in self.classes:
+            count = class_counts.get(cls, 1)
+            weight = total_samples / (len(self.classes) * count)
+            weights.append(weight)
+
+        return torch.FloatTensor(weights)
+
+
 def clear_torch_cache():
     cache_dir = Path.home() / ".cache" / "torch" / "hub" / "checkpoints"
     if cache_dir.exists():
@@ -128,52 +145,6 @@ def check_data_distribution(dataset, class_names):
     
     return class_counts
 
-    def get_class_weights(self):
-        class_counts = self.data['label'].value_counts()
-        total_samples = len(self.data)
-        
-        weights = []
-        for cls in self.classes:
-            count = class_counts.get(cls, 1)
-            weight = total_samples / (len(self.classes) * count)
-            weights.append(weight)
-        
-        return torch.FloatTensor(weights)
-
-class PlantClassifier(nn.Module):
-    
-    def __init__(self, num_classes, model_name='efficientnet_b4', pretrained=True):
-        super(PlantClassifier, self).__init__()
-        
-        self.num_classes = num_classes
-        
-        if model_name == 'efficientnet_b4':
-            try:
-                # محاولة تحميل النموذج مع الأوزان المسبقة
-                self.backbone = efficientnet_b4(weights=EfficientNet_B4_Weights.IMAGENET1K_V1 if pretrained else None)
-                self.backbone.classifier = nn.Linear(self.backbone.classifier[1].in_features, num_classes)
-            except Exception as e:
-                print(f"⚠️ خطأ في تحميل الأوزان المسبقة: {e}")
-                print("🔄 محاولة تحميل النموذج باستخدام timm...")
-                try:
-                    # استخدام timm كبديل
-                    self.backbone = timm.create_model('efficientnet_b4', pretrained=pretrained, num_classes=num_classes)
-                except Exception as e2:
-                    print(f"⚠️ خطأ في تحميل النموذج باستخدام timm: {e2}")
-                    print("🔄 تحميل النموذج بدون أوزان مسبقة...")
-                    self.backbone = efficientnet_b4(weights=None)
-                    self.backbone.classifier = nn.Linear(self.backbone.classifier[1].in_features, num_classes)
-        elif model_name == 'resnet50':
-            from torchvision.models import resnet50, ResNet50_Weights
-            self.backbone = resnet50(weights=ResNet50_Weights.IMAGENET1K_V1 if pretrained else None)
-            self.backbone.fc = nn.Linear(self.backbone.fc.in_features, num_classes)
-        elif model_name == 'convnext_base':
-            self.backbone = timm.create_model('convnext_base', pretrained=pretrained, num_classes=num_classes)
-        else:
-            raise ValueError(f"نموذج غير مدعوم: {model_name}")
-    
-    def forward(self, x):
-        return self.backbone(x)
 
 def get_transforms():
     # تحويلات التدريب مع زيادة البيانات
