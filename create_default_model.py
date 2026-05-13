@@ -1,17 +1,28 @@
 #!/usr/bin/env python3
+"""ينشئ نموذج efficientnet افتراضياً — يحمّل plant_classifier مباشرة دون استيراد train (لا يحتاج albumentations)."""
 
-import torch
-import torch.nn as nn
+import importlib.util
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent / 'ml'))
+import torch
 
-from train import PlantClassifier
+
+def _plant_classifier_cls():
+    root = Path(__file__).resolve().parent
+    path = root / "ml" / "plant_classifier.py"
+    spec = importlib.util.spec_from_file_location("smg_plant_classifier", path)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"Cannot load plant_classifier from {path}")
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod.PlantClassifier
+
 
 def create_default_model():
+    PlantClassifier = _plant_classifier_cls()
     print("🌱 إنشاء نموذج نباتات افتراضي...")
-    
+
     # فئات النباتات الأساسية
     default_species = [
         "إكليل الجبل",      # Rosemary
@@ -25,14 +36,14 @@ def create_default_model():
         "الفلفل",           # Pepper
         "الخيار"            # Cucumber
     ]
-    
+
     num_classes = len(default_species)
     class_to_idx = {cls: idx for idx, cls in enumerate(default_species)}
     idx_to_class = {idx: cls for cls, idx in class_to_idx.items()}
-    
+
     print(f"📊 عدد الفئات: {num_classes}")
     print(f"🌿 الفئات: {', '.join(default_species)}")
-    
+
     # إنشاء النموذج
     print("🔨 إنشاء النموذج...")
     try:
@@ -47,15 +58,15 @@ def create_default_model():
         except Exception as e2:
             print(f"❌ فشل في إنشاء النموذج: {e2}")
             return False
-    
+
     # حفظ النموذج
     models_dir = Path(__file__).parent / 'ml' / 'models'
     models_dir.mkdir(parents=True, exist_ok=True)
-    
+
     model_path = models_dir / 'efficientnet_b4_v1.pt'
-    
+
     print(f"💾 حفظ النموذج في: {model_path}")
-    
+
     model_data = {
         'model_state_dict': model.state_dict(),
         'architecture': 'efficientnet_b4',
@@ -68,7 +79,7 @@ def create_default_model():
         'train_accuracy': 0.0,
         'note': 'نموذج افتراضي غير مدرب - يحتاج للتدريب على بيانات حقيقية'
     }
-    
+
     try:
         torch.save(model_data, model_path)
         print("✅ تم حفظ النموذج بنجاح!")
@@ -88,4 +99,3 @@ if __name__ == "__main__":
     else:
         print("\n❌ فشل في إنشاء النموذج الافتراضي")
         sys.exit(1)
-
