@@ -565,7 +565,7 @@ class ScanRequest(BaseModel):
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'user': os.getenv('DB_USER', 'smg_user'),
-    'password': os.getenv('DB_PASSWORD', 'smg_password'),
+    'password': os.getenv('DB_PASSWORD', ''),
     'database': os.getenv('DB_NAME', 'smg_plants'),
     'charset': 'utf8mb4'
 }
@@ -867,7 +867,7 @@ def hash_password(password: str) -> str:
 
 **مثال:**
 ```python
-hash_password("123456")
+hash_password("")
 # النتيجة: "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"
 ```
 
@@ -1139,7 +1139,7 @@ class ApiService {
 
 **مثال على الاستخدام:**
 ```dart
-final result = await apiService.login('user@example.com', 'password123');
+final result = await apiService.login('user@example.com', '');
 print(result['access_token']); // يطبع رمز المصادقة
 ```
 
